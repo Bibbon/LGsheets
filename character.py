@@ -115,6 +115,9 @@ class Character:
         self.initiative = 0
         self.speed = 0
 
+        # Money
+        self.purse =
+
         # Stats
         self.strenght = 0
         self.dexterity = 0
@@ -153,8 +156,8 @@ class Character:
 
         # Equipment
         # Dict list for weapons and armors
-        # Weapon ex: {'name':'Short sword', 'type':'dexterity', 'damage':6, 'damageMod':1, 'hitMod':1}
-        # Armor ex:  {'name':'Studded leather', 'baseAC':12, 'bonus':'dexterity'}
+        # Weapon ex: {'name':'Short sword', 'type':'dexterity', 'damage':6, 'damageMod':1, 'hitMod':1, 'proc':6}
+        # Armor ex:  {'name':'Studded leather', 'baseAC':12, 'bonus':'dexterity', 'modifier':2, 'maxBonus':3}
         self.weapons = []
         self.armors = []
 
