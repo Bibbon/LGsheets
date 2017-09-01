@@ -9,16 +9,14 @@ def find_dict_by_value(dicts = [{}], key = '', value = None, firstOnly = False):
         value (any): The value associated with the key.
         firstOnly (bool): Return the first dictionary found instead of the list.
     Return:
-        result (list(dict)): List of all dictionaries found with the key:value.
+        result (generator object): Generator object of all dictionaries found with the key:value.
         OR
         result (dict): First dictionary found with the key:value.
     '''
     result = (dictionary for dictionary in dicts if dictionary[key] == value)
 
-    if next(result, None) is None:
-        result = None
-    elif firstOnly:
-        result = result.next()
+    if firstOnly:
+        result = next(result, None)
 
     return result
 
@@ -45,12 +43,6 @@ def get_proficiency(level = 1):
         prof = 6
 
     return prof
-
-def get_modifier(stat = 10):
-    '''
-    Returns the modifier according to the stat given.
-    '''
-    return (stat - 10) / 2
 
 def roll(dice = 20, advantage = False, disadvantage = False):
     '''
@@ -91,17 +83,19 @@ class Character:
     related to D&D characters.
     '''
 
-    def __init__(self, buildNew = False, fromFile = None):
+    def __init__(self, createNew = False, fromFile = None):
         '''
         Constructor function for characters.
         Args:
-            buildNew (bool): True to build a new character from scratch
+            createNew (bool): True to build a new character from scratch
                              when creating a Character object.
             file (string): Path to the character file to build from.
         '''
-        if buildNew and fromFile is not None:
+        if createNew and fromFile is not None:
             raise Exception('You can\'t build a new character and import one at the same time!')
+
         # General
+        self.name = ''
         self.level = 0
         self.race = ''
         self.combatClass = ''
@@ -110,13 +104,11 @@ class Character:
         self.hitPointsMax = 0
         self.hitPointsCurrent = 0
         self.hitPointsTemp = 0
+        self.hitDice = 0
         self.armorClass = 0
         self.proficiency = 0
         self.initiative = 0
         self.speed = 0
-
-        # Money
-        self.purse =
 
         # Stats
         self.strenght = 0
@@ -125,6 +117,19 @@ class Character:
         self.intelligence = 0
         self.wisdom = 0
         self.charisma = 0
+        self.passivePerception = 0
+
+        # Money
+        self.purse = {'copper':0, 'silver':0, 'electrum':0, 'gold':0, 'platinum':0}
+
+        # Spells
+        # Spell save dc = 8 + prof + class modifier
+        # Spell attack modifier = Prof + class modifier
+        self.spellDC = 0
+        self.spellAttack = 0
+        # Temp
+        self.classSpellModifier = ''
+        self.classSpellRessource = {'name':'', 'maximum':0, 'current':0}
 
         # Saving throws
         self.savingThrows = [{'name':'strenght', 'modifier':0, 'proficient':False},
@@ -155,18 +160,38 @@ class Character:
                        {'name':'survival', 'type':'wisdom', 'modifier':0, 'proficient':False}]
 
         # Equipment
-        # Dict list for weapons and armors
+        # Dict list of equipment from the config file. Custom equipment can
+        # be added there. They need to respect the basic keys though.
         # Weapon ex: {'name':'Short sword', 'type':'dexterity', 'damage':6, 'damageMod':1, 'hitMod':1, 'proc':6}
         # Armor ex:  {'name':'Studded leather', 'baseAC':12, 'bonus':'dexterity', 'modifier':2, 'maxBonus':3}
         self.weapons = []
         self.armors = []
+        self.tools = []
+        self.misc = []
+        self.scrolls = []
+        self.potions = []
 
-        if buildNew:
+        if createNew:
             self._create_character()
+
+    def get_modifier(self, stat):
+        '''
+        Returns the modifier according to the int given.
+        If stat is a string, takes the character's stat value instead.
+        Args:
+            stat (int or string): Stat to get the modifier from.
+        '''
+        return (stat - 10) / 2 if isinstance(stat, int) else (getattr(self, stat) - 10) / 2
 
     def update_modifiers(self, elements, nameIsType = False):
         '''
         Updates the modifiers of the elements according to this Character's stats.
+        (elements) has to have those specific keys:
+            modifier:(int)
+            type:(str)
+            proficient:(bool)
+            ***name:(str) if [type] == [name]
+
         Args:
             elements (list(dict)): List of dictionaries to update the modifiers.
             nameIsType (bool): True if the stat type and the name are the same.
@@ -175,7 +200,7 @@ class Character:
         for e in elements:
 
             # Set modifier with the appropriate stat
-            e['modifier'] = get_modifier(getattr(self, e['name'] if nameIsType else e['type']))
+            e['modifier'] = self.get_modifier(getattr(self, e['name'] if nameIsType else e['type']))
             # Add proficiency if proficient
             if e['proficient']:
                 e['modifier'] += get_proficiency(self.level)
@@ -183,25 +208,80 @@ class Character:
     def update_character(self):
         '''
         Updates this whole character from his current stats.
+        TODO:
+            Take equipement into consideration
+            Take active spells into consideration
         '''
+        self.proficiency = get_proficiency(self.level)
         self.update_modifiers(self.skills)
         self.update_modifiers(self.savingThrows, True)
+        self.spellAttack = self.proficiency + self.get_modifier(getattr(self, self.classSpellModifier))
+        self.spellDC = 8 + self.spellAttack
+        self.initiative = self.get_modifier('dexterity')
+        self.passivePerception = 10 + self.get_modifier('wisdom')
+        self.passivePerception += self.proficiency if find_dict_by_value(self.skills, 'name', 'perception', True)['proficient'] else 0
+        if not self.armors:
+            self.armorClass = 10 + self.get_modifier('dexterity')
+        self.hitPointsCurrent = self.hitPointsTemp = self.hitPointsMax
 
     def _create_character(self):
         '''
-        BUILT IN
+        PRIVATE: Should be only used once, in the __init__!
         Creates a character from user input.
         '''
+        # Requesting basic fields to the user
+        requiered = ['name',
+                     'combatClass',
+                     'race',
+                     'alignment',
+                     'background',
+                     'level',
+                     'hitPointsMax',
+                     'speed',
+                     'strenght',
+                     'dexterity',
+                     'constitution',
+                     'intelligence',
+                     'wisdom',
+                     'charisma',
+                     'classSpellModifier']
+
         print('Please enter your character\'s information:')
-        for var in vars(self):
-            attr = getattr(self, var)
+        # Asking for requiered attributes
+        for field in requiered:
+            # Get actual value
+            attr = getattr(self, field)
             value = None
+            # Request user input, converts to int if needed.
             if isinstance(attr, int):
-                value = int(raw_input('{}: '.format(var).title()))
+                value = int(raw_input('{}: '.format(field).title()))
             elif isinstance(attr, str):
-                value = raw_input('{}: '.format(var).title())
+                value = raw_input('{}: '.format(field).title())
             if value is not None:
-                setattr(self, var, value)
+                # Set value only if it has changed.
+                setattr(self, field, value)
+        # Asking for proficiencies
+        print('Please select your proficiencies, use yes or y if the case, else no or n.')
+        for st in self.savingThrows:
+            proficient = raw_input('Are you proficient in {} saving throws?'.format(st['name']))
+            st['proficient'] = True if proficient.lower().startswith('y') else False
+        for skill in self.skills:
+            proficient = raw_input('Are you proficient in {}?'.format(skill['name']))
+            skill['proficient'] = True if proficient.lower().startswith('y') else False
+        # Setting purse
+        print('Please enter your glorious wealth.')
+        for coin, amount in self.purse.iteritems():
+            self.purse[coin] = value = int(raw_input('{}: '.format(coin).title()))
+        # Setting vairables
         print('Character created. Finalizing...')
         self.update_character()
         print('Done.')
+
+    def _print_character(self):
+        '''
+        PRIVATE: Used for debug.
+        Prints all this object's attributes with their value in STDOUT.
+        '''
+        print('Printing character...')
+        for var in vars(c):
+            print('{}: {}'.format(var , vars(c).get(var)))
