@@ -20,6 +20,19 @@ def find_dict_by_value(dicts = [{}], key = '', value = None, firstOnly = False):
 
     return result
 
+def get_int_from_dice(dice = '1d4'):
+    '''
+    Gets the dice and the multiplier from a string dice format.
+    Args:
+        dice (string): Universal D&D dice format ex: (1d4, 2d8, 3d10).
+    Return:
+        result (dict): Dictionary containing the value and the multiplier of the roll.
+                       {'multiplier':1, 'dice':4}
+    '''
+    dice = dice.lower()
+    res = dice.split('d')
+    return {'multiplier':int(res[0]), 'dice':int(res[1])}
+
 def get_proficiency(level = 1):
     '''
     Returns the proficiency of a character depeding on his level.
@@ -44,35 +57,40 @@ def get_proficiency(level = 1):
 
     return prof
 
-def roll(dice = 20, advantage = False, disadvantage = False):
+def roll(dice = 20, iterator = 1, advantage = False, disadvantage = False):
     '''
     Returns a random number between 1 and the specified dice.
     Considers advantage and disadvantage.
     Prints accordingly if fumble or crit happen on a d20.
     Args:
         dice (int): Number to randomize.
+        iterator (int): Number of times to roll the dice.
+        advantage (bool): True to roll with advantage, taking the highest of 2 rolls.
+        disadvantage (bool): True to roll with disadvantage, taking the lowest of 2 rolls.
     Return:
-        result (int): Number rolled.
+        result (int): Total of all dice rolled.
     '''
-    a = random.randint(1, dice)
-    b = random.randint(1, dice)
+    result = 0
 
-    # Rolling options
-    if advantage and not disadvantage:
-        print('Rolled {} and {} with advantage'.format(a, b))
-        result = max(a, b)
-    elif disadvantage and not advantage:
-        print('Rolled {} and {} with disadvantage'.format(a, b))
-        result = min(a, b)
-    else:
-        print('Rolled {}'.format(a))
-        result = a
+    for i in range(iterator):
+        a = random.randint(1, dice)
+        b = random.randint(1, dice)
+        # Rolling options
+        if advantage and not disadvantage:
+            print('Rolled {} and {} with advantage'.format(a, b))
+            result += max(a, b)
+        elif disadvantage and not advantage:
+            print('Rolled {} and {} with disadvantage'.format(a, b))
+            result += min(a, b)
+        else:
+            print('Rolled {}'.format(a))
+            result += a
 
-    # Crit and fumble monitor if rolling a d20
-    if result == 20:
-        print('!CRITICAL!')
-    elif result == 1 and dice == 20:
-        print('!FUMBLE!')
+        # Crit and fumble monitor if rolling a d20
+        if result == 20 and dice == 20:
+            print('!CRITICAL!')
+        elif result == 1 and dice == 20:
+            print('!FUMBLE!')
 
     return result
 
@@ -162,7 +180,7 @@ class Character:
         # Equipment
         # Dict list of equipment from the config file. Custom equipment can
         # be added there. They need to respect the basic keys though.
-        # Weapon ex: {'name':'Short sword', 'type':'dexterity', 'damage':6, 'damageMod':1, 'hitMod':1, 'proc':6}
+        # Weapon ex: {'name':'Short sword', 'type':'dexterity', 'damage':1d6, 'damageMod':1, 'hitMod':1, 'proc':1d6}
         # Armor ex:  {'name':'Studded leather', 'baseAC':12, 'bonus':'dexterity', 'modifier':2, 'maxBonus':3}
         self.weapons = []
         self.armors = []
@@ -224,6 +242,39 @@ class Character:
             self.armorClass = 10 + self.get_modifier('dexterity')
         self.hitPointsCurrent = self.hitPointsTemp = self.hitPointsMax
 
+    def attack(self, weapon = {}, advantage = False, disadvantage = False):
+        '''
+        Attack with the provided weapon using this character stats.
+        Weapon ex: {'name':'short sword', 'type':'dexterity', 'damage':'1d6', 'damageMod':1, 'hitMod':1, 'proc':'1d6', 'proficient': False}
+        Args:
+            weapon (dict): Weapon to attack with. Attacks with fist if no weapon is provided.
+            advantage (bool): True to roll with advantage, taking the highest of 2 rolls.
+            disadvantage (bool): True to roll with disadvantage, taking the lowest of 2 rolls.
+        '''
+        print('Attacking with {}.'.format(weapon['name']))
+        # Getting character modifier for this weapon
+        statModifier = self.get_modifier(weapon['type'])
+        # Getting int to calculate damage of the weapon
+        damageDice = get_int_from_dice(weapon['damage'])
+        print('Rolling hit.')
+        # Calculating the total hit dice depeding of the character and the proficiency
+        hit = roll(advantage = advantage, disadvantage = disadvantage)
+        totalHit = hit + statModifier + weapon['hitMod']
+        totalHit += self.proficiency if weapon['proficient'] else 0
+        print('Hit for a total of {}!'.format(totalHit))
+        print('Rolling damage.')
+        # Calculating total damage
+        damage = roll(dice = damageDice['dice'], iterator = damageDice['multiplier'])
+        damage += damage if hit == 20 else 0
+        totalDamage = damage + statModifier + weapon['damageMod']
+        print('Damage: {}'.format(totalDamage))
+        # Calculating proc or bonus damage if the weapon has one
+        if weapon['proc'] is not 0:
+            print('Rolling weapon bonus damage/proc.')
+            procDice = get_int_from_dice(weapon['proc'])
+            proc = roll(dice = procDice['dice'], iterator = procDice['multiplier'])
+            print('Weapon proc\'d for an additonal {} damage.'.format(proc))
+
     def _create_character(self):
         '''
         PRIVATE: Should be only used once, in the __init__!
@@ -271,7 +322,8 @@ class Character:
         # Setting purse
         print('Please enter your glorious wealth.')
         for coin, amount in self.purse.iteritems():
-            self.purse[coin] = value = int(raw_input('{}: '.format(coin).title()))
+            value = raw_input('{}: '.format(coin).title())
+            self.purse[coin] = int(value) if value != '' else 0
         # Setting vairables
         print('Character created. Finalizing...')
         self.update_character()
@@ -283,5 +335,5 @@ class Character:
         Prints all this object's attributes with their value in STDOUT.
         '''
         print('Printing character...')
-        for var in vars(c):
-            print('{}: {}'.format(var , vars(c).get(var)))
+        for var in vars(self):
+            print('{}: {}'.format(var , vars(self).get(var)))
