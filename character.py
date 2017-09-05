@@ -1,4 +1,5 @@
 import random
+import json
 
 def find_dict_by_value(dicts = [{}], key = '', value = None, firstOnly = False):
     '''
@@ -106,15 +107,15 @@ class Character:
     related to D&D characters.
     '''
 
-    def __init__(self, createNew = False, fromFile = None):
+    def __init__(self, createNew = False, saveFile = None):
         '''
         Constructor function for characters.
         Args:
             createNew (bool): True to build a new character from scratch
                              when creating a Character object.
-            file (string): Path to the character file to build from.
+            saveFile (string): Path to the character file to build from(With ext).
         '''
-        if createNew and fromFile is not None:
+        if createNew and saveFile is not None:
             raise Exception('You can\'t build a new character and import one at the same time!')
 
         # General
@@ -195,14 +196,19 @@ class Character:
         self.potions = []
 
         if createNew:
-            self._create_character()
+            self._create()
+
+        if saveFile is not None:
+            self.load(saveFile)
 
     def get_modifier(self, stat):
         '''
         Returns the modifier according to the int given.
-        If stat is a string, takes the character's stat value instead.
+        If stat is a string, takes this character's stat value instead.
         Args:
             stat (int or string): Stat to get the modifier from.
+        Return:
+            modifier (int): Modifier of the stat.
         '''
         return (stat - 10) / 2 if isinstance(stat, int) else (getattr(self, stat) - 10) / 2
 
@@ -228,7 +234,7 @@ class Character:
             if e['proficient']:
                 e['modifier'] += get_proficiency(self.level)
 
-    def update_character(self):
+    def update(self):
         '''
         Updates this whole character from his current stats.
         TODO:
@@ -280,10 +286,16 @@ class Character:
             proc = roll(dice = procDice['dice'], iterator = procDice['multiplier'])
             print('Weapon proc\'d for an additonal {} damage.'.format(proc))
 
-    def _create_character(self):
+
+    def _create(self, fromScratch = False):
         '''
         PRIVATE: Should be only used once, in the __init__!
         Creates a character from user input.
+        Args:
+            fromScratch (bool): Create your character from scratch, meaning that
+                                choosing the race, class and background will
+                                apply the bonuses to your stats automatically.
+                                TODO - WIP
         '''
         # Requesting basic fields to the user
         requiered = ['name',
@@ -331,10 +343,10 @@ class Character:
             self.purse[coin] = int(value) if value != '' else 0
         # Setting vairables
         print('Character created. Finalizing...')
-        self.update_character()
+        self.update()
         print('Done.')
 
-    def _print_character(self):
+    def _print(self):
         '''
         PRIVATE: Used for debug.
         Prints all this object's attributes with their value in STDOUT.
