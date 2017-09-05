@@ -285,6 +285,19 @@ class Character:
             procDice = get_int_from_dice(weapon['proc'])
             proc = roll(dice = procDice['dice'], iterator = procDice['multiplier'])
             print('Weapon proc\'d for an additonal {} damage.'.format(proc))
+    def save(self, saveFile = 'default.txt'):
+        '''
+        Saves this character in the JSON format.
+        '''
+        with open(saveFile, 'w+') as sf:
+            json.dump(self.__dict__, sf, sort_keys = True, indent = 4)
+
+    def load(self, saveFile = 'default.txt'):
+        '''
+        Loads and replaces this character by the specified JSON format file.
+        '''
+        with open(saveFile, 'r+') as sf:
+            self.__dict__ = json.load(sf)
 
 
     def _create(self, fromScratch = False):
