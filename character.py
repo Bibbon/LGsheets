@@ -20,18 +20,23 @@ def find_dict_by_value(dicts = [{}], key = '', value = None, firstOnly = False):
 
     return result
 
-def get_int_from_dice(dice = '1d4'):
+def get_dices_from_rolls(rolls = '1d4+2d6'):
     '''
-    Gets the dice and the multiplier from a string dice format.
+    Gets the dice and the multiplier from a string roll expression. (1d4+2d6)
     Args:
-        dice (string): Universal D&D dice format ex: (1d4, 2d8, 3d10).
+        rolls (string): Universal D&D roll format ex: (1d4, 2d8, 3d10).
+                        *Can be several dices (4d4+2d8).
     Return:
-        result (dict): Dictionary containing the value and the multiplier of the roll.
-                       {'multiplier':1, 'dice':4}
+        result (list(dict)): List of dictionaries containing the value and the
+                             multiplier of the roll: {'multiplier':1, 'dice':4}
     '''
-    dice = dice.lower()
-    res = dice.split('d')
-    return {'multiplier':int(res[0]), 'dice':int(res[1])}
+    result = []
+    dices = rolls.lower().split('+')
+    for dice in dices:
+        res = dice.split('d')
+        result.append({'multiplier':int(res[0]), 'dice':int(res[1])})
+
+    return result
 
 def get_proficiency(level = 1):
     '''
