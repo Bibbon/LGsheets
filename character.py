@@ -253,20 +253,23 @@ class Character:
             self.armorClass = 10 + self.get_modifier('dexterity')
         self.hitPointsCurrent = self.hitPointsTemp = self.hitPointsMax
 
-    def attack(self, weapon = {}, advantage = False, disadvantage = False):
+    def attack(self, weapon = {}, advantage = False, disadvantage = False, additionalRolls = None):
         '''
         Attack with the provided weapon using this character stats.
         Weapon ex: {'name':'short sword', 'type':'dexterity', 'damage':'1d6', 'damageMod':1, 'hitMod':1, 'proc':'1d6', 'proficient': False}
+        TODO:
+            Need to fully implement the get_dices_from_rolls with standard damage and proc.
         Args:
             weapon (dict): Weapon to attack with. Attacks with fist if no weapon is provided.
             advantage (bool): True to roll with advantage, taking the highest of 2 rolls.
             disadvantage (bool): True to roll with disadvantage, taking the lowest of 2 rolls.
+            additionalRolls (string): Rolls to add custom damage to the attack.
         '''
         print('Attacking with {}.'.format(weapon['name']))
         # Getting character modifier for this weapon
         statModifier = self.get_modifier(weapon['type'])
-        # Getting int to calculate damage of the weapon
-        damageDice = get_int_from_dice(weapon['damage'])
+        # Getting dices to calculate weapon damage
+        damageDice = get_dices_from_rolls(weapon['damage'])[0]
         print('Rolling hit.')
         # Calculating the total hit dice depeding of the character and the proficiency
         hit = roll(advantage = advantage, disadvantage = disadvantage)
@@ -278,13 +281,24 @@ class Character:
         damage = roll(dice = damageDice['dice'], iterator = damageDice['multiplier'])
         damage += damage if hit == 20 else 0
         totalDamage = damage + statModifier + weapon['damageMod']
-        print('Damage: {}'.format(totalDamage))
+        print('Weapon damage: {}'.format(totalDamage))
         # Calculating proc or bonus damage if the weapon has one
         if weapon['proc'] is not 0:
             print('Rolling weapon bonus damage/proc.')
-            procDice = get_int_from_dice(weapon['proc'])
+            procDice = get_dices_from_rolls(weapon['proc'])[0]
             proc = roll(dice = procDice['dice'], iterator = procDice['multiplier'])
             print('Weapon proc\'d for an additonal {} damage.'.format(proc))
+            totalDamage += proc
+
+        if additionalRolls is not None:
+            print('Adding custom rolls to the attack: {}'.format(additionalRolls))
+            dices = get_dices_from_rolls(additionalRolls)
+            for dice in dices:
+                damage = roll(dice = dice['dice'], iterator = dice['multiplier'])
+                print('Additional damage roll: {}'.format(damage))
+                totalDamage += damage
+        print('Attack recap: {} hit for {} with a grand total of {} damage.'.format(weapon['name'], totalHit, totalDamage))
+
     def save(self, saveFile = 'default.txt'):
         '''
         Saves this character in the JSON format.
