@@ -1,0 +1,205 @@
+{
+    "alignment": "good", 
+    "armorClass": 14, 
+    "armors": [], 
+    "background": "outlander", 
+    "charisma": 8, 
+    "classSpellModifier": "wisdom", 
+    "classSpellRessource": {
+        "current": 0, 
+        "maximum": 0, 
+        "name": ""
+    }, 
+    "combatClass": "ranger", 
+    "constitution": 16, 
+    "dexterity": 18, 
+    "hitDice": 0, 
+    "hitPointsCurrent": 130, 
+    "hitPointsMax": 130, 
+    "hitPointsTemp": 130, 
+    "initiative": 4, 
+    "intelligence": 10, 
+    "level": 11, 
+    "misc": [], 
+    "name": "Diego", 
+    "passivePerception": 17, 
+    "potions": [], 
+    "proficiency": 4, 
+    "purse": {
+        "copper": 265, 
+        "electrum": 0, 
+        "gold": 1675, 
+        "platinum": 2, 
+        "silver": 400
+    }, 
+    "race": "dwarf", 
+    "savingThrows": [
+        {
+            "modifier": 6, 
+            "name": "strenght", 
+            "proficient": true
+        }, 
+        {
+            "modifier": 8, 
+            "name": "dexterity", 
+            "proficient": true
+        }, 
+        {
+            "modifier": 3, 
+            "name": "constitution", 
+            "proficient": false
+        }, 
+        {
+            "modifier": 0, 
+            "name": "intelligence", 
+            "proficient": false
+        }, 
+        {
+            "modifier": 3, 
+            "name": "wisdom", 
+            "proficient": false
+        }, 
+        {
+            "modifier": -1, 
+            "name": "charisma", 
+            "proficient": false
+        }
+    ], 
+    "scrolls": [], 
+    "skills": [
+        {
+            "modifier": 4, 
+            "name": "acrobatics", 
+            "proficient": false, 
+            "type": "dexterity"
+        }, 
+        {
+            "modifier": 7, 
+            "name": "animalHandling", 
+            "proficient": true, 
+            "type": "wisdom"
+        }, 
+        {
+            "modifier": 0, 
+            "name": "arcana", 
+            "proficient": false, 
+            "type": "intelligence"
+        }, 
+        {
+            "modifier": 6, 
+            "name": "athletics", 
+            "proficient": true, 
+            "type": "strenght"
+        }, 
+        {
+            "modifier": -1, 
+            "name": "deception", 
+            "proficient": false, 
+            "type": "charisma"
+        }, 
+        {
+            "modifier": 0, 
+            "name": "history", 
+            "proficient": false, 
+            "type": "intelligence"
+        }, 
+        {
+            "modifier": 7, 
+            "name": "insight", 
+            "proficient": true, 
+            "type": "wisdom"
+        }, 
+        {
+            "modifier": -1, 
+            "name": "intimidation", 
+            "proficient": false, 
+            "type": "charisma"
+        }, 
+        {
+            "modifier": 0, 
+            "name": "investigation", 
+            "proficient": false, 
+            "type": "intelligence"
+        }, 
+        {
+            "modifier": 7, 
+            "name": "medecine", 
+            "proficient": true, 
+            "type": "wisdom"
+        }, 
+        {
+            "modifier": 0, 
+            "name": "nature", 
+            "proficient": false, 
+            "type": "intelligence"
+        }, 
+        {
+            "modifier": 7, 
+            "name": "perception", 
+            "proficient": true, 
+            "type": "wisdom"
+        }, 
+        {
+            "modifier": -1, 
+            "name": "performance", 
+            "proficient": false, 
+            "type": "charisma"
+        }, 
+        {
+            "modifier": -1, 
+            "name": "persuassion", 
+            "proficient": false, 
+            "type": "charisma"
+        }, 
+        {
+            "modifier": 0, 
+            "name": "religion", 
+            "proficient": false, 
+            "type": "intelligence"
+        }, 
+        {
+            "modifier": 4, 
+            "name": "sleightOfHand", 
+            "proficient": false, 
+            "type": "dexterity"
+        }, 
+        {
+            "modifier": 4, 
+            "name": "stealth", 
+            "proficient": false, 
+            "type": "dexterity"
+        }, 
+        {
+            "modifier": 7, 
+            "name": "survival", 
+            "proficient": true, 
+            "type": "wisdom"
+        }
+    ], 
+    "speed": 25, 
+    "spellAttack": 7, 
+    "spellDC": 15, 
+    "strenght": 14, 
+    "tools": [], 
+    "weapons": [
+        {
+            "damage": "1d6", 
+            "damageMod": 1, 
+            "hitMod": 1, 
+            "name": "poison short sword +1", 
+            "proc": 0, 
+            "proficient": true, 
+            "type": "dexterity"
+        }, 
+        {
+            "damage": "1d8", 
+            "damageMod": 0, 
+            "hitMod": 0, 
+            "name": "Quick long bow", 
+            "proc": 0, 
+            "proficient": true, 
+            "type": "dexterity"
+        }
+    ], 
+    "wisdom": 16
+}
